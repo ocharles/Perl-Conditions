@@ -7,9 +7,9 @@ use Package::Stash;
 use Try::Tiny;
 
 use Sub::Exporter -setup => {
-    exports => [qw( with_handlers bind_continue handle restart_case )],
+    exports => [qw( cont with_handlers bind_continue handle restart_case )],
     groups => {
-        default => [qw( with_handlers bind_continue handle restart_case )]
+        default => [qw( cont with_handlers bind_continue handle restart_case )]
     }
 };
 
@@ -39,6 +39,13 @@ sub continue_with (&) {
     return sub { @vals }
 }
 
+sub cont (&) {
+    my $name = shift;
+    return sub {
+        $cases{$name->()}->(@_)
+    };
+}
+
 sub restart_case (&@) {
     my $error = shift->();
     %cases = @_;
@@ -57,6 +64,7 @@ sub restart {
         }
     }
 }
+
 
 # Nom. Sugarz
 sub handle {
