@@ -31,4 +31,4 @@ with_handlers {
     Dwarn [ parse_log_entry('Oh no bad data') ];
     Dwarn [ parse_log_entry('2010-10-12 12:11:03 INFO Notice it still carries on!') ];
 }
-handle(MalformedLogEntry => cont { 'log' });
+handle(MalformedLogEntry => restart('log'));
