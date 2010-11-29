@@ -3,21 +3,20 @@ use warnings FATAL => 'all';
 
 package MalformedLogEntry;
 use Moose;
-extends 'Throwable::Error';
+with 'Throwable';
 
 package MyApp;
 use Conditions;
 use Devel::Dwarn;
 
-# XXX Can we make this `sub parse_log_entry` ?
-dangerous parse_log_entry => sub {
+sub parse_log_entry {
     my $entry = shift or die "Must specify entry";
     if($entry =~ /(\d+-\d+-\d+) (\d+:\d+:\d+) (\w+) (.*)/) {
         return ($1, $2, $3, $4);
     }
     else {
         restart_case {
-            MalformedLogEntry->new($entry),
+            MalformedLogEntry->new#($entry),
         }
         bind_continue(use_value => sub { return shift }),
         bind_continue(log => sub {
@@ -28,7 +27,9 @@ dangerous parse_log_entry => sub {
 };
 
 with_handlers {
-    print parse_log_entry('Oh no bad data'), "\n";
+    Dwarn [ parse_log_entry('2010-01-01 10:09:5 WARN Test') ];
+    Dwarn [ parse_log_entry('Oh no bad data') ];
+    Dwarn [ parse_log_entry('2010-10-12 12:11:03 INFO Notice it still carries on!') ];
 }
 handle(MalformedLogEntry => sub {
     return 'I can use my own handler';
