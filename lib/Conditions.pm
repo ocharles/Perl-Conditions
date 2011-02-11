@@ -4,6 +4,7 @@ use warnings FATAL => 'all';
 
 use Scope::Upper qw( unwind :words );
 use Package::Stash;
+use Scalar::Util 'blessed';
 use Try::Tiny;
 
 use Sub::Exporter -setup => {
@@ -22,7 +23,11 @@ BEGIN {
         my $err = shift;
         for my $handles (keys %handlers) {
             if($err->isa($handles)) {
-                unwind $handlers{$handles}->($err) => UP UP HERE;
+                my $handler = $handlers{$handles};
+                $handler = ${$handler}
+                    if blessed($handler) && $handler->isa('Try::Tiny::Catch');
+                unwind $handler->($err) => UP UP UP HERE;
+                return "Well, it should never get here...";
             }
         }
     };
@@ -32,6 +37,7 @@ sub with_handlers (&@) {
     my ($code, %handles) = @_;
     %handlers = %handles; # XXX Should push onto each handler as a queue
     $code->();
+    %handlers = ();
 }
 
 sub continue_with (&) {
@@ -41,8 +47,9 @@ sub continue_with (&) {
 
 sub restart {
     my $name = shift;
+    my @args = @_;
     return sub {
-        $cases{$name}->(@_)
+        $cases{$name}->(@args)
     };
 }
 
