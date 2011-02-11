@@ -1,7 +1,7 @@
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
-use Conditions;
+use ConditionSystem;
 use Try::Tiny;
 
 {
