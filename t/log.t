@@ -11,7 +11,6 @@ use Test::More;
 {
     package MyApp;
     use ConditionSystem;
-    use Devel::Dwarn;
 
     sub parse_log_entry {
         my $entry = shift or die "Must specify entry";
